@@ -392,6 +392,8 @@ class QuickSubmitForm extends Form {
 					DAORegistry::getDAO('SectionDAO')->resequenceCustomSectionOrders($publication->getData('issueId'));
 				}
 			}
+		} else {
+			\HookRegistry::call('QuickSubmit::unpublish', array($this->_submission->getId()));
 		}
 
 		// Index article.
