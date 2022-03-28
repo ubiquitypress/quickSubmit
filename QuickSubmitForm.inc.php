@@ -312,6 +312,7 @@ class QuickSubmitForm extends Form {
 		$submission = $submissionDao->getById($this->getData('submissionId'));
 		if ($this->_submission && $this->_submission->getContextId() != $this->_context->getId()) throw new Exeption('Submission not in context!');
 		if ($submission) $submissionDao->deleteById($submission->getId());
+		\HookRegistry::call('QuickSubmit::delete', array($submission));
 	}
 
 	/**
