@@ -25,6 +25,12 @@
 	</script>
 
 	<div id="quickSubmitPlugin" class="app__contentPanel">
+		<div class="previewNotification">
+			{capture assign="cancelUrl"}{plugin_url path="cancelSubmit" submissionId="$submissionId"}{/capture}
+			<notification>
+				{translate key="plugins.importexport.quickSubmit.addSubmission.notification" cancelUrl=$cancelUrl}
+			</notification>
+		</div>
 		<p>{translate key="plugins.importexport.quickSubmit.descriptionLong"}</p>
 
 		<form class="pkp_form" id="quickSubmitForm" method="post" action="{plugin_url path="saveSubmit"}">

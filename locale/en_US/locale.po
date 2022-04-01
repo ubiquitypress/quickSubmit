@@ -48,7 +48,7 @@ msgid "plugins.importexport.quickSubmit.selectIssue"
 msgstr "An issue must be selected"
 
 msgid "plugins.importexport.quickSubmit.addSubmission.notification"
-msgstr "A new submission has been created. Please add more details to, or "
+msgstr "A new submission has been created. Please add more details to it, or <a href=\"{$cancelUrl}\">delete</a> it. "
 
 msgid "plugins.importexport.quickSubmit.add"
 msgstr "Add new submission"
