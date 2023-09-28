@@ -3,7 +3,7 @@
 /**
  * @defgroup plugins_importexport_quickSubmit
  */
- 
+
 /**
  * @file index.php
  *
@@ -15,6 +15,8 @@
  *
  * @ingroup plugins_importexport_quickSubmit
  */
+
+use APP\plugins\importexport\quickSubmit\QuickSubmitPlugin;
 
 require_once('QuickSubmitPlugin.inc.php');
 return new QuickSubmitPlugin();

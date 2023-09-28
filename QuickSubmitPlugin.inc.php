@@ -13,12 +13,15 @@
  * @brief Quick Submit one-page submission plugin
  */
 
+namespace APP\plugins\importexport\quickSubmit;
+
 use PKP\core\JSONMessage;
 use APP\template\TemplateManager;
 use PKP\notification\PKPNotification;
 use APP\notification\NotificationManager;
+use PKP\plugins\ImportExportPlugin;
 
-class QuickSubmitPlugin extends \PKP\plugins\ImportExportPlugin {
+class QuickSubmitPlugin extends ImportExportPlugin {
 
 	/**
 	 * @copydoc Plugin::register()
