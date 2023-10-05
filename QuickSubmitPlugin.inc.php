@@ -20,6 +20,7 @@ use APP\template\TemplateManager;
 use PKP\notification\PKPNotification;
 use APP\notification\NotificationManager;
 use PKP\plugins\ImportExportPlugin;
+use QuickSubmitForm;
 
 class QuickSubmitPlugin extends ImportExportPlugin {
 
@@ -60,6 +61,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	public function display($args, $request) {
 		$templateMgr = TemplateManager::getManager($request);
 		$templateMgr->registerPlugin('function', 'plugin_url', array($this, 'smartyPluginUrl'));
+        $templateMgr->assign('quickSubmitPlugin', $this);
 
 		switch (array_shift($args)) {
 			case 'saveSubmit':

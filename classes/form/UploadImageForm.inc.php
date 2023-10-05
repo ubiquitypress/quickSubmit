@@ -218,10 +218,10 @@ class UploadImageForm extends Form {
 	 */
 	function fetch($request, $template = null, $display = false, $params = null) {
 		$templateMgr = TemplateManager::getManager($request);
-		$templateMgr->assign(array(
+		$templateMgr->assign([
 			'fileSettingName' => $this->getFileSettingName(),
 			'fileType' => 'image',
-		));
+		]);
 
 		return parent::fetch($request, $template, $display);
 	}

@@ -32,7 +32,7 @@ use PKP\submission\PKPSubmission;
 use PKP\linkAction\request\AjaxModal;
 use PKP\context\Context as PKPContext;
 use PKP\submissionFile\SubmissionFile;
-use APP\submission\SubmissionMetadataFormImplementation;
+use APP\plugins\importexport\quickSubmit\classes\form\SubmissionMetadataFormImplementation;
 
 class QuickSubmitForm extends Form {
 	/** @var Request */
@@ -80,17 +80,16 @@ class QuickSubmitForm extends Form {
 			$this->_metadataFormImplem->addChecks($this->_submission);
 		}
 
-		$sectionDao = DAORegistry::getDAO('SectionDAO'); /** @var SectionDAO $sectionDao */
-
+        $sectionDao = Repo::section()->dao;
 		$this->addCheck(new \PKP\form\validation\FormValidatorPost($this));
 		$this->addCheck(new \PKP\form\validation\FormValidatorCSRF($this));
 		$this->addCheck(
 			new \PKP\form\validation\FormValidatorCustom(
-				$this, 
-				'sectionId', 
-				'required', 
-				'author.submit.form.sectionRequired', 
-				array($sectionDao, 'sectionExists'), 
+				$this,
+				'sectionId',
+				'required',
+				'author.submit.form.sectionRequired',
+				array($sectionDao, 'sectionExists'),
 				array($this->_context->getId())
 			)
 		);
@@ -164,9 +163,14 @@ class QuickSubmitForm extends Form {
 		));
 
 		// Get section for this context
-		$sectionDao = DAORegistry::getDAO('SectionDAO'); /** @var SectionDAO $sectionDao */
-		$sectionOptions = array('0' => '') + $sectionDao->getTitlesByContextId($this->_context->getId());
-		$templateMgr->assign('sectionOptions', $sectionOptions);
+        $sectionDao = Repo::section()->dao;
+
+        $sectionOptions = Repo::section()->getCollector()
+            ->filterByContextIds([$this->_context->getId()])
+            ->getMany()
+            ->toArray();
+
+		$templateMgr->assign('sectionOptions', array_merge([0 => ''], $sectionOptions));
 
 		// Get published Issues
 		$issues = Repo::issue()->getCollector()
@@ -187,7 +191,7 @@ class QuickSubmitForm extends Form {
 
 		// $sectionDao = DAORegistry::getDAO('SectionDAO');
 		$sectionId = $this->getData('sectionId') ?: $this->_submission->getSectionId();
-		$section = $sectionDao->getById($sectionId, $this->_context->getId());
+		$section = $sectionDao->get($sectionId);
 		$templateMgr->assign(array(
 			'wordCount' => $section->getAbstractWordCount(),
 			'abstractsRequired' => !$section->getAbstractsNotRequired(),
@@ -245,9 +249,9 @@ class QuickSubmitForm extends Form {
 		if (!$this->_submission) {
 			$this->_data['locale'] = $this->getDefaultFormLocale();
 
-			// Get Sections
-			$sectionDao = DAORegistry::getDAO('SectionDAO'); /** @var SectionDAO $sectionDao */
-			$sectionOptions = $sectionDao->getTitlesByContextId($this->_context->getId());
+            $sectionOptions = Repo::section()->getCollector()
+                ->filterByContextIds([$this->_context->getId()])
+                ->getMany();
 
 			// Create and insert a new submission and publication
 			$this->_submission = Repo::submission()->dao->newDataObject();
@@ -256,7 +260,7 @@ class QuickSubmitForm extends Form {
 			$this->_submission->setSubmissionProgress(1);
 			$this->_submission->stampStatusModified();
 			$this->_submission->setStageId(WORKFLOW_STAGE_ID_SUBMISSION);
-			$this->_submission->setData('sectionId', $sectionId = current(array_keys($sectionOptions)));
+			$this->_submission->setData('sectionId', $sectionId = current($sectionOptions->keys()));
 			$this->_submission->setLocale($this->getDefaultFormLocale());
 
 			$publication = new Publication();
@@ -414,7 +418,7 @@ class QuickSubmitForm extends Form {
 			// If this submission's issue uses custom section ordering and this is the first
 			// article published in a section, make sure we enter a custom ordering
 			// for that section to place it at the end.
-			$sectionDao = DAORegistry::getDAO('SectionDAO'); /** @var SectionDAO $sectionDao */
+            $sectionDao = Repo::section()->dao;
 			if ($sectionDao->customSectionOrderingExists($publication->getData('issueId'))) {
 				$sectionOrder = $sectionDao->getCustomSectionOrder($publication->getData('issueId'), $publication->getData('sectionId'));
 				if  ($sectionOrder === null) {
