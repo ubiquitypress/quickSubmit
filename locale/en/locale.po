@@ -46,3 +46,6 @@ msgstr "Go to Submission"
 
 msgid "plugins.importexport.quickSubmit.selectIssue"
 msgstr "An issue must be selected"
+
+msgid "plugins.importexport.quickSubmit.add"
+msgstr "Add new submission"
