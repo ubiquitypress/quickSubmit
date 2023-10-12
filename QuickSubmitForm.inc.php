@@ -83,16 +83,17 @@ class QuickSubmitForm extends Form {
         $sectionDao = Repo::section()->dao;
 		$this->addCheck(new \PKP\form\validation\FormValidatorPost($this));
 		$this->addCheck(new \PKP\form\validation\FormValidatorCSRF($this));
-		$this->addCheck(
-			new \PKP\form\validation\FormValidatorCustom(
-				$this,
-				'sectionId',
-				'required',
-				'author.submit.form.sectionRequired',
-				array($sectionDao, 'sectionExists'),
-				array($this->_context->getId())
-			)
-		);
+        $this->addCheck(
+            new \PKP\form\validation\FormValidatorCustom(
+                $this,
+                'sectionId',
+                'required',
+                'plugins.importexport.quickSubmit.author.submit.form.sectionRequired',
+                function ($sectionId) use ($contextId) {
+                    return Repo::section()->exists($sectionId, $contextId);
+                }
+            )
+        );
 
 		// Validation checks for this form
 		$supportedSubmissionLocales = $this->_context->getSupportedSubmissionLocales();
@@ -162,15 +163,19 @@ class QuickSubmitForm extends Form {
 			'add'
 		));
 
-		// Get section for this context
-        $sectionDao = Repo::section()->dao;
-
-        $sectionOptions = Repo::section()->getCollector()
+        // Get section for this context
+        $sectionTitles = Repo::section()
+            ->getCollector()
             ->filterByContextIds([$this->_context->getId()])
             ->getMany()
+            ->mapWithKeys(function ($section) {
+                return [
+                    $section->getId() => $section->getLocalizedTitle()
+                ];
+            })
             ->toArray();
-
-		$templateMgr->assign('sectionOptions', array_merge([0 => ''], $sectionOptions));
+        $sectionOptions = [0 => ''] + $sectionTitles;
+        $templateMgr->assign('sectionOptions', $sectionOptions);
 
 		// Get published Issues
 		$issues = Repo::issue()->getCollector()
@@ -191,7 +196,7 @@ class QuickSubmitForm extends Form {
 
 		// $sectionDao = DAORegistry::getDAO('SectionDAO');
 		$sectionId = $this->getData('sectionId') ?: $this->_submission->getSectionId();
-		$section = $sectionDao->get($sectionId);
+        $section = Repo::section()->get($sectionId, $this->_context->getId());
 		$templateMgr->assign(array(
 			'wordCount' => $section->getAbstractWordCount(),
 			'abstractsRequired' => !$section->getAbstractsNotRequired(),

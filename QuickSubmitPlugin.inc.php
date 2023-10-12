@@ -130,8 +130,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _showFileUploadForm($request) {
-		import('plugins.importexport.quickSubmit.classes.form.UploadImageForm');
-		$imageUploadForm = new UploadImageForm($this, $request);
+        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->initData($request);
 		return new JSONMessage(true, $imageUploadForm->fetch($request));
 	}
@@ -142,8 +141,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _uploadImage($request) {
-		import('plugins.importexport.quickSubmit.classes.form.UploadImageForm');
-		$imageUploadForm = new UploadImageForm($this, $request);
+        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->readInputData();
 
 		$temporaryFileId = $imageUploadForm->uploadFile($request);
@@ -164,8 +162,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _saveUploadedImage($request) {
-		import('plugins.importexport.quickSubmit.classes.form.UploadImageForm');
-		$imageUploadForm = new UploadImageForm($this, $request);
+        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->readInputData();
 		return $imageUploadForm->execute($request);
 	}
@@ -176,8 +173,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _deleteUploadedImage($request) {
-		import('plugins.importexport.quickSubmit.classes.form.UploadImageForm');
-		$imageUploadForm = new UploadImageForm($this, $request);
+        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->readInputData();
 		return $imageUploadForm->deleteCoverImage($request);
 	}

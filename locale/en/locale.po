@@ -49,3 +49,6 @@ msgstr "An issue must be selected"
 
 msgid "plugins.importexport.quickSubmit.add"
 msgstr "Add new submission"
+
+msgid "plugins.importexport.quickSubmit.author.submit.form.sectionRequired"
+msgstr "Please select an appropriate journal section for this submission."
