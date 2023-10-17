@@ -70,7 +70,7 @@ class QuickSubmitForm extends Form {
 			if ($this->_submission->getContextId() != $this->_context->getId()) {
 				throw new Exception('Submission not in context!');
 			}
-			
+
 			$this->_submission->setLocale($this->getDefaultFormLocale());
 			$publication = $this->_submission->getCurrentPublication();
 			$publication->setData('locale', $this->getDefaultFormLocale());
@@ -98,7 +98,7 @@ class QuickSubmitForm extends Form {
 		// Validation checks for this form
 		$supportedSubmissionLocales = $this->_context->getSupportedSubmissionLocales();
 		if (!is_array($supportedSubmissionLocales) || count($supportedSubmissionLocales) < 1)
-			$supportedSubmissionLocales = array($this->_context->getPrimaryLocale());
+			$supportedSubmissionLocales =[$this->_context->getPrimaryLocale()];
 		$this->addCheck(new \PKP\form\validation\FormValidatorInSet($this, 'locale', 'required', 'submission.submit.form.localeRequired', $supportedSubmissionLocales));
 
 		$this->addCheck(new \PKP\form\validation\FormValidatorUrl($this, 'licenseUrl', 'optional', 'form.url.invalid'));
@@ -133,10 +133,10 @@ class QuickSubmitForm extends Form {
 
 		// Tell the form what fields are enabled (and which of those are required)
 		foreach (Application::getMetadataFields() as $field) {
-			$templateMgr->assign(array(
-				$field . 'Enabled' => in_array($this->_context->getData($field), array(PKPContext::METADATA_ENABLE, PKPContext::METADATA_REQUEST, PKPContext::METADATA_REQUIRE)),
+			$templateMgr->assign([
+				$field . 'Enabled' => in_array($this->_context->getData($field), [PKPContext::METADATA_ENABLE, PKPContext::METADATA_REQUEST, PKPContext::METADATA_REQUIRE]),
 				$field . 'Required' => $this->_context->getData($field) === PKPContext::METADATA_REQUIRE,
-			));
+			]);
 		}
 
 		// Cover image delete link action
@@ -147,7 +147,7 @@ class QuickSubmitForm extends Form {
 		$templateMgr->assign('openCoverImageLinkAction', new LinkAction(
 			'uploadFile',
 			new AjaxModal(
-				$router->url($this->_request, null, null, 'importexport', array('plugin', 'QuickSubmitPlugin', 'uploadCoverImage'), array(
+				$router->url($this->_request, null, null, 'importexport', ['plugin', 'QuickSubmitPlugin', 'uploadCoverImage'], [
 					'coverImage' => $publication->getData('coverImage', $locale),
 					'submissionId' => $this->_submission->getId(),
 					'publicationId' => $publication->getId(),
@@ -155,7 +155,7 @@ class QuickSubmitForm extends Form {
 					// but we have to provide a stage id to make calls
 					// to IssueEntryTabHandler
 					'stageId' => WORKFLOW_STAGE_ID_PRODUCTION,
-				)),
+				]),
 				__('common.upload'),
 				'modal_add_file'
 			),
@@ -197,10 +197,11 @@ class QuickSubmitForm extends Form {
 		// $sectionDao = DAORegistry::getDAO('SectionDAO');
 		$sectionId = $this->getData('sectionId') ?: $this->_submission->getSectionId();
         $section = Repo::section()->get($sectionId, $this->_context->getId());
-		$templateMgr->assign(array(
+
+		$templateMgr->assign([
 			'wordCount' => $section->getAbstractWordCount(),
 			'abstractsRequired' => !$section->getAbstractsNotRequired(),
-		));
+		]);
 
 		// Process entered tagit fields values for redisplay.
 		// @see PKPSubmissionHandler::saveStep
@@ -208,10 +209,10 @@ class QuickSubmitForm extends Form {
 		if (is_array($tagitKeywords)) {
 			$tagitFieldNames = $this->_metadataFormImplem->getTagitFieldNames();
 			$locales = array_keys($this->supportedLocales);
-			$formTagitData = array();
+			$formTagitData = [];
 			foreach ($tagitFieldNames as $tagitFieldName) {
 				foreach ($locales as $locale) {
-					$formTagitData[$locale] = array_key_exists($locale . "-$tagitFieldName", $tagitKeywords) ? $tagitKeywords[$locale . "-$tagitFieldName"] : array();
+					$formTagitData[$locale] = array_key_exists($locale . "-$tagitFieldName", $tagitKeywords) ? $tagitKeywords[$locale . "-$tagitFieldName"] : [];
 				}
 				$this->setData($tagitFieldName, $formTagitData);
 			}
@@ -249,7 +250,7 @@ class QuickSubmitForm extends Form {
 	 * Initialize form data for a new form.
 	 */
 	function initData() {
-		$this->_data = array();
+		$this->_data = [];
 
 		if (!$this->_submission) {
 			$this->_data['locale'] = $this->getDefaultFormLocale();
@@ -291,7 +292,7 @@ class QuickSubmitForm extends Form {
 
 			// $userGroupId is being used for $stageAssignmentDao->build
 			// This build function needs the userGroupId
-			// So here the first function should fail if no manager user group is found. 
+			// So here the first function should fail if no manager user group is found.
 			$userGroupId = $managerUserGroups->firstOrFail()->getId();
 
 			// Pre-fill the copyright information fields from setup (#7236)
@@ -447,8 +448,8 @@ class QuickSubmitForm extends Form {
 	 * @return array Associative list of options for pulldown
 	 */
 	function getIssueOptions($journal) {
-		$issuesPublicationDates = array();
-		$issueOptions = array();
+		$issuesPublicationDates = [];
+		$issueOptions = [];
 		$journalId = $journal->getId();
 
 		$issueOptions[-1] =  '------    ' . __('editor.issues.futureIssues') . '    ------';
