@@ -74,8 +74,11 @@ class QuickSubmitForm extends Form {
 			$this->_submission->setLocale($this->getDefaultFormLocale());
 			$publication = $this->_submission->getCurrentPublication();
 			$publication->setData('locale', $this->getDefaultFormLocale());
-			Repo::submission()->edit($this->_submission, []);
-			Repo::publication()->edit($publication, []);
+
+            $this->_submission->setData('sectionId', $request->getUserVar('sectionId'));
+
+            Repo::submission()->edit($this->_submission, []);
+			Repo::publication()->edit($publication, []); //maybe have to set correct section in publication too
 
 			$this->_metadataFormImplem->addChecks($this->_submission);
 		}

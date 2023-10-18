@@ -46,7 +46,7 @@ class SubmissionMetadataFormImplementation
      */
     public function _getAbstractsRequired($submission)
     {
-        $section = Repo::section()->get($submission->getCurrentPublication()->getData('sectionId'), $submission->getData('contextId'));
+        $section = Repo::section()->get($submission->_data['sectionId'], $submission->getData('contextId'));
         return !$section->getAbstractsNotRequired();
     }
 
@@ -70,7 +70,7 @@ class SubmissionMetadataFormImplementation
             'required',
             'submission.submit.form.authorRequired',
             function () use ($submission) {
-                return $submission->getCurrentPublication()->getData('authors')->isEmpty();
+                return !$submission->getCurrentPublication()->getData('authors')->isEmpty();
             }
         ));
 
