@@ -79,7 +79,6 @@ class QuickSubmitPlugin extends \PKP\plugins\ImportExportPlugin {
             case 'deleteCoverImage':
                 return $this->_deleteUploadedImage($request);
             case 'addSubmit':
-                $this->import('QuickSubmitForm');
                 $templateMgr->assign([
                     'pageTitle' => $this->getDisplayName(),
                 ]);
