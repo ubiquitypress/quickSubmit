@@ -70,7 +70,7 @@ class SubmissionMetadataFormImplementation
             'required',
             'submission.submit.form.authorRequired',
             function () use ($submission) {
-                return $submission->getCurrentPublication()->getData('authors')->isEmpty();
+                return !empty($submission->getCurrentPublication()->getData('authors'));
             }
         ));
 

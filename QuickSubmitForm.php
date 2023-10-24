@@ -1,19 +1,18 @@
 <?php
 
 /**
- * @file QuickSubmitForm.inc.php
+ * @file QuickSubmitForm.php
  *
- * Copyright (c) 2013-2021 Simon Fraser University
- * Copyright (c) 2003-2021 John Willinsky
+ * Copyright (c) 2013-2023 Simon Fraser University
+ * Copyright (c) 2003-2023 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file LICENSE.
  *
  * @class QuickSubmitForm
- * @ingroup plugins_importexport_quickSubmit
- *
  * @brief Form for QuickSubmit one-page submission plugin
  */
 
-use Exception;
+namespace APP\plugins\importexport\quickSubmit;
+
 use PKP\core\Core;
 use PKP\form\Form;
 use APP\facades\Repo;
@@ -30,35 +29,29 @@ use APP\publication\Publication;
 use APP\template\TemplateManager;
 use PKP\submission\PKPSubmission;
 use PKP\linkAction\request\AjaxModal;
-use PKP\context\Context as PKPContext;
+use PKP\context\Context;
+use PKP\core\PKPRequest;
 use PKP\submissionFile\SubmissionFile;
-use APP\plugins\importexport\quickSubmit\classes\form\SubmissionMetadataFormImplementation;
+use APP\plugins\importexport\quickSubmit\QuickSubmitPlugin;
 
 class QuickSubmitForm extends Form {
-	/** @var Request */
-	protected $_request;
-
-	/** @var Submission */
-	protected $_submission;
-
-	/** @var Journal */
-	protected $_context;
-
-	/** @var SubmissionMetadataFormImplementation */
-	protected $_metadataFormImplem;
+	protected PKPRequest $_request;
+	protected ?PKPSubmission $_submission = null;
+	protected Journal $_context;
+	protected classes\form\SubmissionMetadataFormImplementation $_metadataFormImplem;
 
 	/**
 	 * Constructor
 	 * @param $plugin object
 	 * @param $request object
 	 */
-	function __construct($plugin, $request) {
+	function __construct(QuickSubmitPlugin $plugin, PKPRequest $request) {
 		parent::__construct($plugin->getTemplateResource('index.tpl'));
 
 		$this->_request = $request;
 		$this->_context = $request->getContext();
 
-		$this->_metadataFormImplem = new SubmissionMetadataFormImplementation($this);
+		$this->_metadataFormImplem = new classes\form\SubmissionMetadataFormImplementation($this);
 
 		$locale = $request->getUserVar('locale');
 		if ($locale && ($locale != Locale::getLocale())) {
@@ -68,7 +61,7 @@ class QuickSubmitForm extends Form {
 		if ($submissionId = $request->getUserVar('submissionId')) {
 			$this->_submission = Repo::submission()->get($submissionId);
 			if ($this->_submission->getContextId() != $this->_context->getId()) {
-				throw new Exception('Submission not in context!');
+				throw new \Exception('Submission not in context!');
 			}
 
 			$this->_submission->setLocale($this->getDefaultFormLocale());
@@ -80,25 +73,25 @@ class QuickSubmitForm extends Form {
 			$this->_metadataFormImplem->addChecks($this->_submission);
 		}
 
-        $sectionDao = Repo::section()->dao;
 		$this->addCheck(new \PKP\form\validation\FormValidatorPost($this));
 		$this->addCheck(new \PKP\form\validation\FormValidatorCSRF($this));
-        $this->addCheck(
-            new \PKP\form\validation\FormValidatorCustom(
-                $this,
-                'sectionId',
-                'required',
-                'plugins.importexport.quickSubmit.author.submit.form.sectionRequired',
-                function ($sectionId) use ($contextId) {
-                    return Repo::section()->exists($sectionId, $contextId);
-                }
-            )
-        );
+		$contextId = $this->_context->getId();
+		$this->addCheck(
+			new \PKP\form\validation\FormValidatorCustom(
+				$this,
+				'sectionId',
+				'required',
+				'author.submit.form.sectionRequired',
+				function ($sectionId) use ($contextId) {
+					return Repo::section()->exists($sectionId, $contextId);
+				}
+			)
+		);
 
 		// Validation checks for this form
 		$supportedSubmissionLocales = $this->_context->getSupportedSubmissionLocales();
 		if (!is_array($supportedSubmissionLocales) || count($supportedSubmissionLocales) < 1)
-			$supportedSubmissionLocales =[$this->_context->getPrimaryLocale()];
+			$supportedSubmissionLocales = array($this->_context->getPrimaryLocale());
 		$this->addCheck(new \PKP\form\validation\FormValidatorInSet($this, 'locale', 'required', 'submission.submit.form.localeRequired', $supportedSubmissionLocales));
 
 		$this->addCheck(new \PKP\form\validation\FormValidatorUrl($this, 'licenseUrl', 'optional', 'form.url.invalid'));
@@ -133,10 +126,10 @@ class QuickSubmitForm extends Form {
 
 		// Tell the form what fields are enabled (and which of those are required)
 		foreach (Application::getMetadataFields() as $field) {
-			$templateMgr->assign([
-				$field . 'Enabled' => in_array($this->_context->getData($field), [PKPContext::METADATA_ENABLE, PKPContext::METADATA_REQUEST, PKPContext::METADATA_REQUIRE]),
-				$field . 'Required' => $this->_context->getData($field) === PKPContext::METADATA_REQUIRE,
-			]);
+			$templateMgr->assign(array(
+				$field . 'Enabled' => in_array($this->_context->getData($field), array(Context::METADATA_ENABLE, Context::METADATA_REQUEST, Context::METADATA_REQUIRE)),
+				$field . 'Required' => $this->_context->getData($field) === Context::METADATA_REQUIRE,
+			));
 		}
 
 		// Cover image delete link action
@@ -147,7 +140,7 @@ class QuickSubmitForm extends Form {
 		$templateMgr->assign('openCoverImageLinkAction', new LinkAction(
 			'uploadFile',
 			new AjaxModal(
-				$router->url($this->_request, null, null, 'importexport', ['plugin', 'QuickSubmitPlugin', 'uploadCoverImage'], [
+				$router->url($this->_request, null, null, 'importexport', array('plugin', 'QuickSubmitPlugin', 'uploadCoverImage'), array(
 					'coverImage' => $publication->getData('coverImage', $locale),
 					'submissionId' => $this->_submission->getId(),
 					'publicationId' => $publication->getId(),
@@ -155,7 +148,7 @@ class QuickSubmitForm extends Form {
 					// but we have to provide a stage id to make calls
 					// to IssueEntryTabHandler
 					'stageId' => WORKFLOW_STAGE_ID_PRODUCTION,
-				]),
+				)),
 				__('common.upload'),
 				'modal_add_file'
 			),
@@ -163,19 +156,19 @@ class QuickSubmitForm extends Form {
 			'add'
 		));
 
-        // Get section for this context
-        $sectionTitles = Repo::section()
-            ->getCollector()
-            ->filterByContextIds([$this->_context->getId()])
-            ->getMany()
-            ->mapWithKeys(function ($section) {
-                return [
-                    $section->getId() => $section->getLocalizedTitle()
-                ];
-            })
-            ->toArray();
-        $sectionOptions = [0 => ''] + $sectionTitles;
-        $templateMgr->assign('sectionOptions', $sectionOptions);
+		// Get section for this context
+		$sectionTitles = Repo::section()
+			->getCollector()
+			->filterByContextIds([$this->_context->getId()])
+			->getMany()
+			->mapWithKeys(function ($section) {
+				return [
+					$section->getId() => $section->getLocalizedTitle()
+				];
+			})
+			->toArray();
+		$sectionOptions = [0 => ''] + $sectionTitles;
+		$templateMgr->assign('sectionOptions', $sectionOptions);
 
 		// Get published Issues
 		$issues = Repo::issue()->getCollector()
@@ -194,14 +187,12 @@ class QuickSubmitForm extends Form {
 			'publicationId' => $publication->getId(),
 		));
 
-		// $sectionDao = DAORegistry::getDAO('SectionDAO');
 		$sectionId = $this->getData('sectionId') ?: $this->_submission->getSectionId();
-        $section = Repo::section()->get($sectionId, $this->_context->getId());
-
-		$templateMgr->assign([
+		$section = Repo::section()->get($sectionId, $this->_context->getId());
+		$templateMgr->assign(array(
 			'wordCount' => $section->getAbstractWordCount(),
 			'abstractsRequired' => !$section->getAbstractsNotRequired(),
-		]);
+		));
 
 		// Process entered tagit fields values for redisplay.
 		// @see PKPSubmissionHandler::saveStep
@@ -209,10 +200,10 @@ class QuickSubmitForm extends Form {
 		if (is_array($tagitKeywords)) {
 			$tagitFieldNames = $this->_metadataFormImplem->getTagitFieldNames();
 			$locales = array_keys($this->supportedLocales);
-			$formTagitData = [];
+			$formTagitData = array();
 			foreach ($tagitFieldNames as $tagitFieldName) {
 				foreach ($locales as $locale) {
-					$formTagitData[$locale] = array_key_exists($locale . "-$tagitFieldName", $tagitKeywords) ? $tagitKeywords[$locale . "-$tagitFieldName"] : [];
+					$formTagitData[$locale] = array_key_exists($locale . "-$tagitFieldName", $tagitKeywords) ? $tagitKeywords[$locale . "-$tagitFieldName"] : array();
 				}
 				$this->setData($tagitFieldName, $formTagitData);
 			}
@@ -250,14 +241,22 @@ class QuickSubmitForm extends Form {
 	 * Initialize form data for a new form.
 	 */
 	function initData() {
-		$this->_data = [];
+		$this->_data = array();
 
 		if (!$this->_submission) {
 			$this->_data['locale'] = $this->getDefaultFormLocale();
 
-            $sectionOptions = Repo::section()->getCollector()
-                ->filterByContextIds([$this->_context->getId()])
-                ->getMany();
+			// Get Sections
+			$sectionOptions = Repo::section()
+				->getCollector()
+				->filterByContextIds([$this->_context->getId()])
+				->getMany()
+				->map(function ($section) {
+					return [
+						$section->getId() => $section->getLocalizedTitle()
+					];
+				})
+				->toArray();
 
 			// Create and insert a new submission and publication
 			$this->_submission = Repo::submission()->dao->newDataObject();
@@ -266,7 +265,7 @@ class QuickSubmitForm extends Form {
 			$this->_submission->setSubmissionProgress(1);
 			$this->_submission->stampStatusModified();
 			$this->_submission->setStageId(WORKFLOW_STAGE_ID_SUBMISSION);
-			$this->_submission->setData('sectionId', $sectionId = current($sectionOptions->keys()));
+			$this->_submission->setData('sectionId', $sectionId = current(array_keys($sectionOptions)));
 			$this->_submission->setLocale($this->getDefaultFormLocale());
 
 			$publication = new Publication();
@@ -345,7 +344,7 @@ class QuickSubmitForm extends Form {
 		$submission = Repo::submission()->get((int) $this->getData('submissionId')); /** @var Submission $submission */
 
 		if ($this->_submission->getContextId() != $this->_context->getId()) {
-			throw new Exception('Submission not in context!');
+			throw new \Exception('Submission not in context!');
 		}
 
 		if ($submission) {
@@ -373,6 +372,8 @@ class QuickSubmitForm extends Form {
 				if ($file) {
 					$newSubmissionFile = clone $file;
 					$newSubmissionFile->setData('fileStage', SubmissionFile::SUBMISSION_FILE_SUBMISSION);
+					$newSubmissionFile->unsetData('assocType');
+					$newSubmissionFile->unsetData('assocId');
 					$newSubmissionFile->setData('viewable', true);
 					$newSubmissionFile->setData('sourceSubmissionFileId', $file->getId());
 					$newSubmissionFile = Repo::submissionFile()->add($newSubmissionFile);
@@ -389,6 +390,7 @@ class QuickSubmitForm extends Form {
 
 		Repo::submission()->edit($this->_submission, []);
 		$this->_submission = Repo::submission()->get($this->_submission->getId());
+		$publication = $this->_submission->getCurrentPublication();
 
 		if ($publication->getData('sectionId') !== (int) $this->getData('sectionId')) {
 			$publication = Repo::publication()->edit($publication, ['sectionId' => (int) $this->getData('sectionId')], $this->_request);
@@ -421,17 +423,6 @@ class QuickSubmitForm extends Form {
 
 			Repo::publication()->publish($publication);
 
-			// If this submission's issue uses custom section ordering and this is the first
-			// article published in a section, make sure we enter a custom ordering
-			// for that section to place it at the end.
-            $sectionDao = Repo::section()->dao;
-			if ($sectionDao->customSectionOrderingExists($publication->getData('issueId'))) {
-				$sectionOrder = $sectionDao->getCustomSectionOrder($publication->getData('issueId'), $publication->getData('sectionId'));
-				if  ($sectionOrder === null) {
-					$sectionDao->insertCustomSectionOrder($publication->getData('issueId'), $publication->getData('sectionId'), REALLY_BIG_NUMBER);
-					$sectionDao->resequenceCustomSectionOrders($publication->getData('issueId'));
-				}
-			}
 		}
 
 		// Index article.
@@ -448,8 +439,8 @@ class QuickSubmitForm extends Form {
 	 * @return array Associative list of options for pulldown
 	 */
 	function getIssueOptions($journal) {
-		$issuesPublicationDates = [];
-		$issueOptions = [];
+		$issuesPublicationDates = array();
+		$issueOptions = array();
 		$journalId = $journal->getId();
 
 		$issueOptions[-1] =  '------    ' . __('editor.issues.futureIssues') . '    ------';

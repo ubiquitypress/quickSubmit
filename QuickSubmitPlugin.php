@@ -1,15 +1,13 @@
 <?php
 
 /**
- * @file QuickSubmitPlugin.inc.php
+ * @file QuickSubmitPlugin.php
  *
- * Copyright (c) 2013-2021 Simon Fraser University
- * Copyright (c) 2003-2021 John Willinsky
+ * Copyright (c) 2013-2023 Simon Fraser University
+ * Copyright (c) 2003-2023 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file LICENSE.
  *
  * @class QuickSubmitPlugin
- * @ingroup plugins_importexport_quickSubmit
- *
  * @brief Quick Submit one-page submission plugin
  */
 
@@ -19,10 +17,8 @@ use PKP\core\JSONMessage;
 use APP\template\TemplateManager;
 use PKP\notification\PKPNotification;
 use APP\notification\NotificationManager;
-use PKP\plugins\ImportExportPlugin;
-use QuickSubmitForm;
 
-class QuickSubmitPlugin extends ImportExportPlugin {
+class QuickSubmitPlugin extends \PKP\plugins\ImportExportPlugin {
 
 	/**
 	 * @copydoc Plugin::register()
@@ -61,27 +57,27 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	public function display($args, $request) {
 		$templateMgr = TemplateManager::getManager($request);
 		$templateMgr->registerPlugin('function', 'plugin_url', array($this, 'smartyPluginUrl'));
-        $templateMgr->assign('quickSubmitPlugin', $this);
+		$templateMgr->assign('quickSubmitPlugin', $this);
 
-		switch (array_shift($args)) {
-			case 'saveSubmit':
-				if ($request->getUserVar('reloadForm') == '1') {
-					$this->_reloadForm($request);
-				} else {
-					$this->_saveSubmit($request);
-				}
-				break;
-			case 'cancelSubmit':
-				$this->_cancelSubmit($request);
-				break;
-			case 'uploadCoverImage':
-				return $this->_showFileUploadForm($request);
-			case 'uploadImage':
-				return $this->_uploadImage($request);
-			case 'saveUploadedImage':
-				return $this->_saveUploadedImage($request);
-			case 'deleteCoverImage':
-				return $this->_deleteUploadedImage($request);
+        switch (array_shift($args)) {
+            case 'saveSubmit':
+                if ($request->getUserVar('reloadForm') == '1') {
+                    $this->_reloadForm($request);
+                } else {
+                    $this->_saveSubmit($request);
+                }
+                break;
+            case 'cancelSubmit':
+                $this->_cancelSubmit($request);
+                break;
+            case 'uploadCoverImage':
+                return $this->_showFileUploadForm($request);
+            case 'uploadImage':
+                return $this->_uploadImage($request);
+            case 'saveUploadedImage':
+                return $this->_saveUploadedImage($request);
+            case 'deleteCoverImage':
+                return $this->_deleteUploadedImage($request);
             case 'addSubmit':
                 $this->import('QuickSubmitForm');
                 $templateMgr->assign([
@@ -97,7 +93,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
                 ]);
                 $templateMgr->display($this->getTemplateResource('main.tpl'));
                 break;
-		}
+        }
 	}
 
 	/**
@@ -105,7 +101,6 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @param $request Request
 	 */
 	protected function _cancelSubmit($request) {
-		$this->import('QuickSubmitForm');
 		$form = new QuickSubmitForm($this, $request);
 		$form->readInputData();
 
@@ -130,7 +125,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _showFileUploadForm($request) {
-        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
+		$imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->initData($request);
 		return new JSONMessage(true, $imageUploadForm->fetch($request));
 	}
@@ -141,7 +136,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _uploadImage($request) {
-        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
+		$imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->readInputData();
 
 		$temporaryFileId = $imageUploadForm->uploadFile($request);
@@ -162,7 +157,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _saveUploadedImage($request) {
-        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
+		$imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->readInputData();
 		return $imageUploadForm->execute($request);
 	}
@@ -173,7 +168,7 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 * @return JSONMessage JSON object
 	 */
 	protected function _deleteUploadedImage($request) {
-        $imageUploadForm = new classes\form\UploadImageForm($this, $request);
+		$imageUploadForm = new classes\form\UploadImageForm($this, $request);
 		$imageUploadForm->readInputData();
 		return $imageUploadForm->deleteCoverImage($request);
 	}
@@ -184,7 +179,6 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 */
 	protected function _saveSubmit($request) {
 		$templateMgr = TemplateManager::getManager($request);
-		$this->import('QuickSubmitForm');
 		$form = new QuickSubmitForm($this, $request);
 		$form->readInputData();
 		if($form->validate()){
@@ -206,7 +200,6 @@ class QuickSubmitPlugin extends ImportExportPlugin {
 	 */
 	protected function _reloadForm($request) {
 		$templateMgr = TemplateManager::getManager($request);
-		$this->import('QuickSubmitForm');
 		$form = new QuickSubmitForm($this, $request);
 		$form->readInputData();
 		$form->display($request);
