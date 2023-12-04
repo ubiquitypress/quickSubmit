@@ -262,7 +262,11 @@ class QuickSubmitForm extends Form {
 			}
 
 			// Pre-fill the copyright information fields from setup (#7236)
-			$this->_data['licenseUrl'] = $this->_context->getData('licenseUrl');
+			if ($this->_context->getData('licenseUrl') == 'other') {
+				$this->_data['licenseUrl'] = $this->_context->getData('licenseOtherUrl');
+			} else {
+				$this->_data['licenseUrl'] = $this->_context->getData('licenseUrl');
+			}
 			switch ($this->_context->getData('copyrightHolderType')) {
 			case 'author':
 				// The author has not been entered yet; let the user fill it in.
