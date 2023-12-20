@@ -384,7 +384,7 @@ class QuickSubmitForm extends Form {
 		$this->_submission->setLocale($this->getData('locale'));
 		$this->_submission->setStageId(WORKFLOW_STAGE_ID_EDITING);
 		$this->_submission->setDateSubmitted(Core::getCurrentDate());
-		$this->_submission->setSubmissionProgress(0);
+        $this->_submission->setData('submissionProgress', '');
 
 		parent::execute($this->_submission, ...$functionParams);
 
