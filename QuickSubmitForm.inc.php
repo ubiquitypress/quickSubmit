@@ -338,7 +338,7 @@ class QuickSubmitForm extends Form {
 				$file = $galley->getFile();
 				if ($file) {
 					$newSubmissionFile = clone $file;
-					$newSubmissionFile->setData('fileStage', SUBMISSION_FILE_SUBMISSION);
+					$newSubmissionFile->setData('fileStage', SUBMISSION_FILE_PROOF);
 					$newSubmissionFile->unsetData('assocType');
 					$newSubmissionFile->unsetData('assocId');
 					$newSubmissionFile->setData('viewable', true);
