@@ -243,6 +243,16 @@ class QuickSubmitForm extends Form {
 			$this->setData('submissionId', $this->_submission->getId());
 
 			$publication = new Publication();
+
+			$qsData = [
+				'submission_id' => $this->_submission->getId(),
+				'setting_name' => 'generatedBy',
+				'setting_value'  => 'quickSubmit'
+			];
+
+			$keys = ['submission_id', 'locale', 'setting_name'];
+			$submissionDao->replace('submission_settings', $qsData, $keys);
+
 			$publication->setData('submissionId', $this->_submission->getId());
 			$publication->setData('locale', $this->getDefaultFormLocale());
 			$publication->setData('language', PKPString::substr($this->getDefaultFormLocale(), 0, 2));
