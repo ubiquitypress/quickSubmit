@@ -247,7 +247,7 @@ class QuickSubmitForm extends Form {
 			$qsData = [
 				'submission_id' => $this->_submission->getId(),
 				'setting_name' => 'generatedBy',
-				'setting_value'  => 'quickSubmit'
+				'setting_value'  => 'quicksubmit'
 			];
 
 			$keys = ['submission_id', 'locale', 'setting_name'];
