@@ -13,6 +13,7 @@
 
 namespace APP\plugins\importexport\quickSubmit;
 
+use Illuminate\Support\Facades\DB;
 use PKP\core\Core;
 use PKP\form\Form;
 use APP\facades\Repo;
@@ -276,6 +277,13 @@ class QuickSubmitForm extends Form {
 
 			Repo::submission()->add($this->_submission, $publication, $this->_context);
 			$this->_submission = Repo::submission()->get($this->_submission->getId());
+
+            DB::table('submission_settings')->insert([
+                'submission_id' => $this->_submission->getId(),
+                'setting_name' => 'generatedBy',
+                'setting_value'  => 'quicksubmit'
+            ]);
+
 			$this->setData('submissionId', $this->_submission->getId());
 
 			$this->_metadataFormImplem->initData($this->_submission);
